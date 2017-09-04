@@ -9,7 +9,7 @@ Description : Module that implements functions that efficiently guess the
               programs internal representation of the game. 
 Project     : Project-1
 Subject     : Declarative Programming, COMP30022.
-Author      : Shreyash Patodia
+Author      : Shreyash Patodia, spatodia, 767336
 Maintainer  : spatodia@student.unimelb.edu.au
 Stability   : stable, tested against all possible inputs. 
 -}
