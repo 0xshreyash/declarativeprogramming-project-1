@@ -1,0 +1,115 @@
+============================================
+vis/LOG
+20:04:24_Monday_04_September_2017
+============================================
+Beginning tests for spatodia Mon Sep  4 20:04:18 AEST 2017
+
+Compiling sources
+ghc -O2 --make Proj1Test -o Proj1Test
+[1 of 2] Compiling Proj1            ( Proj1.hs, Proj1.o )
+[2 of 2] Compiling Main             ( Proj1Test.hs, Proj1Test.o )
+Linking Proj1Test ...
+
+Running a few simple tests
+Your guess 1:  ["A1","B1","C2"]
+My answer:  (1,0,1)
+Your guess 2:  ["A1","D2","E2"]
+My answer:  (1,1,1)
+Your guess 3:  ["A1","A2","D3"]
+My answer:  (1,0,2)
+Your guess 4:  ["A1","E3","F2"]
+My answer:  (3,0,0)
+You got it in 4 guesses!
+
+Your guess 1:  ["A1","B1","C2"]
+My answer:  (1,0,1)
+Your guess 2:  ["A1","D2","E2"]
+My answer:  (1,1,1)
+Your guess 3:  ["A1","A2","D3"]
+My answer:  (1,0,2)
+Your guess 4:  ["A1","E3","F2"]
+My answer:  (3,0,0)
+You got it in 4 guesses!
+
+Your guess 1:  ["A1","B1","C2"]
+My answer:  (0,0,0)
+Your guess 2:  ["D3","E3","F3"]
+My answer:  (2,0,1)
+Your guess 3:  ["D3","E3","G3"]
+My answer:  (2,0,1)
+Your guess 4:  ["D3","F3","G3"]
+My answer:  (2,0,1)
+Your guess 5:  ["E3","F3","G3"]
+My answer:  (3,0,0)
+You got it in 5 guesses!
+
+Your guess 1:  ["A1","B1","C2"]
+My answer:  (0,1,1)
+Your guess 2:  ["A3","D1","E3"]
+My answer:  (1,0,0)
+Your guess 3:  ["A2","A3","F2"]
+My answer:  (0,0,3)
+Your guess 4:  ["B2","E2","E3"]
+My answer:  (2,0,1)
+Your guess 5:  ["B2","E3","G2"]
+My answer:  (3,0,0)
+You got it in 5 guesses!
+
+"proj1.verification" [noeol] 249L, 9126C                                                                                                                                                  2,1           Top
+produceFeedback target guess = (correct, correctNote, correctOct)
+    where chordLen = length guess
+          correct  = chordLen - length (target \\ guess)
+          -- need to make sure to not include the correct prediction in the
+          -- no. of correct notes and chords so take away correct from both.
+          correctNote = chordLen - correct - (incorrectNotes target guess)
+          correctOct = chordLen - correct - (incorrectOctaves target guess)
+
+{--|
+  The function takes two chords, and finds how many notes are different
+  between them.
+--}
+incorrectNotes :: Chord -> Chord -> Int
+incorrectNotes target guess = length (tNotes \\ gNotes)
+    where tNotes = map head target
+          gNotes = map head guess
+
+{--|
+  The function takes two chords, and finds how many octaves are different
+  between them. The two functions above could be more generalised and I had
+  that in my solution but changed since the lecturer had done the same thing
+  as me, and I didn't know how to do it otherwise.
+--}
+incorrectOctaves :: Chord -> Chord -> Int
+incorrectOctaves target guess = length (tOctaves \\ gOctaves)
+    where tOctaves = map last target
+          gOctaves = map last guess
+
+{--|
+  Given a gamestate and a guess, it picks every element in
+  the gamestate as the target in order to produce feedback, it then
+  counts how many times each feedback occured and the expected size of
+  the gs if we used this guess as our next guess
+--}
+simulateGuessResults :: GameState -> Chord -> Float
+simulateGuessResults gs guess = average
+          -- sort so that all of instances of the same feedback are
+          -- close to each other and group-able i.e. a, b, a turns
+          -- into a, a, b
+    where possibleOutcomes = sort $ [produceFeedback x guess | x <- gs]
+          totalOutcomes = fromIntegral $ length possibleOutcomes
+          groupedFeedBack = group possibleOutcomes
+          -- Calculate avg. = x * x/totalOutcomes
+          sumSetSizes = sum [length x ^ 2 | x <- groupedFeedBack]
+          average = (fromIntegral sumSetSizes) / totalOutcomes
+
+{--|
+  Simulates each game state value to be the guess, gets the expected size
+  of the game state for each and then takes the smallest
+  (one with the smallest) expected game state size as the best guess
+--}
+makeGuess :: GameState -> Chord
+makeGuess gs = fst $ minimumBy (comparing snd) chordValuePair
+    where avgValues = map (simulateGuessResults gs) gs
+          chordValuePair = zip gs avgValues
+---------------------------------------------------------------------------
+                ---- !Haskell is beautiful! -----

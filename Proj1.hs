@@ -1,20 +1,30 @@
 {-|
 Module      : Proj1
+Project     : Project-1
+Summary     : ChordProbe game solver implemented for comp30020,
+              depends on Proj1Test in order to run.
+Subject     : Declarative Programming, COMP30020.
+Author      : Shreyash Patodia, spatodia, 767336
+Maintainer  : spatodia@student.unimelb.edu.au
+Stability   : stable, tested against all possible inputs.
+-}
+
+{--|
 Description : Module that implements functions that efficiently guess the 
               value of a pre-determined random chord, in the game of 
               ChordProbe. This module was primarily written for Declarative
               Programming, Semester-2 2017. The function initialGuess makes
               an initial guess for the game, nextGuess makes the next guess
               give the current state of the game and the GameState is this
-              programs internal representation of the game. 
-Project     : Project-1
-Subject     : Declarative Programming, COMP30022.
-Author      : Shreyash Patodia, spatodia, 767336
-Maintainer  : spatodia@student.unimelb.edu.au
-Stability   : stable, tested against all possible inputs. 
--}
+              programs internal representation of the game.
+              Chord probe asks the users to guess a un-ordered target of
+              the form (x, y, z) where each of x, y and z are made of
+              a letter (A..G) and a number (1..3).
+        
+--}
 
 -- In this file gs is used as an abbreviation for game state for breivity --
+------------- The above mainly applies to variable names -------------------
 
 module  Proj1 (initialGuess, nextGuess, GameState) where
 
@@ -30,37 +40,7 @@ type Chord = [Pitch]
 -- The GameState is just a collection of chords. 
 type GameState = [Chord]
 
-{-|
-  The generatePitches function generates all possible Pitches that can
-  exist given our namespaces for Notes and Octaves. 
--}
-generatePitches :: [Pitch]
-generatePitches = [ (x:y:[]) | 
-    x <- ['A'..'G'], y <- ['1'..'3']]
-
-{-|
-  The choose function produces all the ways you can choose n elements
-  from a list xs of size say k. This allows us to choose 3 things out
-  of a list of n things. When choosing n things, each element x could
-  be picked in the n things or not picked, until we get to picking 0
-  things or we have no more options available.
--}
-choose :: [Pitch] -> Int -> [Chord]
-choose _ 0 = [[]]
-choose [] _ = []
--- All possiblities = possibilities that include x + the ones that don't
-choose (x:xs) n = (map (\rs -> ([x] ++ rs)) (choose xs (n-1))) 
-          ++ (choose xs n)
-
-{--|
-  The function generates all pitches and then uses the chordLen
-  to produce all possible chords, if the possible Pitches may
-  chage then just replace the generatePitches function, chordLen
-  can be changed if needed. 
--}
-generateGameStates :: GameState
-generateGameStates = choose generateGuesses chordLen
-    where chordLen = 3
+----------------------- Initial Guess Functions ----------------------------
 
 {--|
   The function returns the best first guess, the value is set to
@@ -72,6 +52,40 @@ generateGameStates = choose generateGuesses chordLen
 initialGuess :: ([String], GameState)
 initialGuess = (["A1", "B1", "C2"], gs) 
     where gs = generateGameStates
+
+{-|
+  The generatePitches function generates all possible Pitches that can
+  exist given our namespaces for Notes and Octaves. 
+-}
+generatePitches :: [Pitch]
+generatePitches = [ (x:y:[]) | 
+    x <- ['A'..'G'], y <- ['1'..'3']]
+
+{--|
+  The function generates all pitches and then uses the chordLen
+  to produce all possible chords, if the possible Pitches may
+  chage then just replace the generatePitches function, chordLen
+  can be changed if needed. 
+-}
+generateGameStates :: GameState
+generateGameStates = choose generatePitches chordLen
+    where chordLen = 3
+
+{-|
+  The choose function produces all the ways you can choose n elements
+  from a list xs of size say k. This allows us to choose 3 things out
+  of a list of n things.
+-}
+choose :: [Pitch] -> Int -> [Chord]
+-- If we want to pick 0 things, there is only one way, and there are
+-- no ways to pick something from an empty list
+choose _ 0 = [[]]
+choose [] _ = []
+-- All possiblities = possibilities that include x + the ones that don't
+choose (x:xs) n = (map (\rs -> ([x] ++ rs)) (choose xs (n-1))) 
+          ++ (choose xs n)
+
+----------------------- Next Guess Functions ---------------------------
 
 {--|
   The function takes the previous guess, gamestate and feedback from
@@ -158,4 +172,4 @@ makeGuess gs = fst $ minimumBy (comparing snd) chordValuePair
     where avgValues = map (simulateGuessResults gs) gs
           chordValuePair = zip gs avgValues
 ---------------------------------------------------------------------------
-                        ---- !Haskell is beautiful! -----
+                ---- !Haskell is beautiful! -----
